@@ -14,9 +14,10 @@ format_on_create()
     local OUT
     local pool=$1
     local name=$2
+    local user=${3:-"admin"}
     local timeout=${DEVICE_TIMEOUT}
 
-    OUT=$(rbd map ${pool}/${name})
+    OUT=$(rbd map --user ${user} ${pool}/${name})
     if [ $? -ne 0  ]; then
         print_error "format_on_create: ${OUT}"
     fi
@@ -62,10 +63,11 @@ create()
     local name=${OPTS['name']}
     local size=${OPTS['size']:-"1G"}
     local pool=${OPTS['pool']:-"rbd"}
+    local user=${OPTS['user']:-"admin"}
     local image_feature=${OPTS['image_feature']:-"layering"}
     local OUT
 
-    OUT=$(rbd create ${pool}/${name} --size ${size} --image-feature ${image_feature})
+    OUT=$(rbd --user ${user} create ${pool}/${name} --size ${size} --image-feature ${image_feature})
     if [ $? -ne 0  ]; then
         print_error "${OUT}"
     fi
@@ -84,19 +86,20 @@ delete()
 
     local name=${OPTS['name']}
     local pool=${OPTS['pool']:-"rbd"}
+    local user=${OPTS['user']:-"admin"}
     local locker_id
     local OUT
 
-    OUT=$(rbd info ${pool}/${name} 2>&1)
+    OUT=$(rbd --user ${user} info ${pool}/${name} 2>&1)
     if [ $? -ne 0 ]; then
         log_info ${pool}/${name} "Device does not exist: ${OUT}"
         print_success
         exit 0
     fi
 
-    locker_id=$(rbd lock list ${pool}/${name} --format json | jq -c .${RBD_LOCK} | jq -r .locker)
+    locker_id=$(rbd --user ${user} lock list ${pool}/${name} --format json | jq -c .${RBD_LOCK} | jq -r .locker)
     if [ "${locker_id}" != "null" ]; then
-        OUT=$(rbd lock remove ${pool}/${name} ${RBD_LOCK} ${locker_id} 2>&1)
+        OUT=$(rbd --user ${user} lock remove ${pool}/${name} ${RBD_LOCK} ${locker_id} 2>&1)
         log_info ${pool}/${name} "Remove lock in delete func: ${OUT}"
     fi
 
@@ -106,7 +109,7 @@ delete()
         log_info ${pool}/${name}-${device} "Unmap device in delete func: ${OUT}"
     fi
 
-    OUT=$(rbd rm --no-progress ${pool}/${name} 2>&1)
+    OUT=$(rbd --user ${user} rm --no-progress ${pool}/${name} 2>&1)
     if [ $? -ne 0  ]; then
         print_error "${OUT}"
     fi
@@ -123,14 +126,15 @@ attach()
 
     local name=${OPTS['name']}
     local pool=${OPTS['pool']:-"rbd"}
+    local user=${OPTS['user']:-"admin"}
     local LOCK_OUT
     local OUT
     local device
     local timeout
 
-    locker_id=$(rbd lock list ${pool}/${name} --format json | jq -c .${RBD_LOCK} | jq -r .locker)
+    locker_id=$(rbd --user ${user} lock list ${pool}/${name} --format json | jq -c .${RBD_LOCK} | jq -r .locker)
     if [ "${locker_id}" == "null" ]; then
-        rbd lock add ${pool}/${name} ${RBD_LOCK}
+        rbd --user ${user} lock add ${pool}/${name} ${RBD_LOCK}
     fi
 
     device=$(rbd showmapped --format json | jq -c --arg n ${name} --arg p ${pool} '.[] | select(.name==$n and .pool==$p)' | jq -r .device)
@@ -139,7 +143,7 @@ attach()
         exit 0
     fi
 
-    OUT=$(rbd map ${pool}/${name})
+    OUT=$(rbd --user ${user} map ${pool}/${name})
     if [ $? -ne 0  ]; then
         print_error "${OUT}"
     fi
@@ -161,6 +165,7 @@ detach()
 {
     # ${DEVICE} will be set with the device that should be detached
     local name=${DEVICE#'/dev/'}
+    local user=${OPTS['user']:-"admin"} # Does OPTS exist in this function??
     local rbd_name
     local rbd_pool
     local OUT
@@ -183,9 +188,9 @@ detach()
         print_error "${OUT}"
     fi
 
-    locker_id=$(rbd lock list ${rbd_pool}/${rbd_name} --format json | jq -c .${RBD_LOCK} | jq -r .locker)
+    locker_id=$(rbd --user ${user} lock list ${rbd_pool}/${rbd_name} --format json | jq -c .${RBD_LOCK} | jq -r .locker)
     if [ "${locker_id}" != "null" ]; then
-        rbd lock remove ${rbd_pool}/${rbd_name} ${RBD_LOCK} ${locker_id}
+        rbd --user ${user} lock remove ${rbd_pool}/${rbd_name} ${RBD_LOCK} ${locker_id}
     fi
 
     local timeout=${DEVICE_TIMEOUT}
