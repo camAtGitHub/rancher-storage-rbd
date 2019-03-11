@@ -6,8 +6,8 @@ These plugins are designed for Rancher 1.6.x
 
 ## Bugs
 
-Not a bug of mine, but I suspect with 'rbd' when you stop the 'stack' Rancher is producing the events:
-`11/03/2019 14:11:49time="2019-03-11T04:11:49Z" level=info msg=unmount.request name="VOLUMENAME_HERE"
+Not a bug of mine, but with 'rancher-rbd' driver when you stop the 'stack' Rancher is producing the events:  
+`11/03/2019 14:11:49time="2019-03-11T04:11:49Z" level=info msg=unmount.request name="VOLUMENAME_HERE"  
 11/03/2019 14:11:49time="2019-03-11T04:11:49Z" level=info msg=unmount.response name="VOLUMENAME_HERE"`
 
 But the rbd device never gets unmounted, even though the stack is stopped. Although the volume will get unmounted etc in a failover / follow-host-container event. Just seems this situation is not catered for.  
