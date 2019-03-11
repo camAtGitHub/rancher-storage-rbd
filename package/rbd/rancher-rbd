@@ -165,7 +165,6 @@ detach()
 {
     # ${DEVICE} will be set with the device that should be detached
     local name=${DEVICE#'/dev/'}
-    local user=${OPTS['user']:-"admin"} # Does OPTS exist in this function??
     local rbd_name
     local rbd_pool
     local OUT
@@ -182,6 +181,9 @@ detach()
 
     rbd_name=$(rbd showmapped --format json | jq -c --arg d ${DEVICE} '.[] | select(.device==$d)' | jq -r .name)
     rbd_pool=$(rbd showmapped --format json | jq -c --arg d ${DEVICE} '.[] | select(.device==$d)' | jq -r .pool)
+
+    # Set the rbd-user since OPTS doesnt exist in this function. Grab from mountdest()
+    local user=$(cat "/var/run/rancher/storage/${rbd_name}-rbdUser")
 
     OUT=$(rbd unmap /dev/${name} 2>&1)
     if [ $? -ne 0 ]; then
@@ -203,6 +205,7 @@ detach()
     done
 
     print_success
+    rm -f "/var/run/rancher/storage/${rbd_name}-rbdUser"
 }
 
 mountdest()
@@ -211,6 +214,8 @@ mountdest()
     # ${device} will be the device returned from attach, if any
     # ${opts} will be populated with the options from the json input
     local name=${DEVICE#'/dev/'}
+    local user=${OPTS['user']:-"admin"}
+    local image_name=${OPTS['name']} # Everywhere this is called 'name'
     local OUT
 
     if [ "${name}" == "${DEVICE}" ]; then
@@ -220,6 +225,8 @@ mountdest()
     if ! OUT=$(mount "${DEVICE}" "${MNT_DEST}" 2>&1); then
         print_error "${OUT}"
     fi
+    # Have to abuse mountdest() to save the username who mounted for detach()
+    echo "${user}" > "/var/run/rancher/storage/${image_name}-rbdUser"
     print_success
 }
 
