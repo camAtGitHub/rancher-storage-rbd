@@ -1,7 +1,18 @@
 My Fork - 2019
 ==============
 This fork has updated 'rancher/storage-rbd' to include support for Ceph v12, it also includes support for ceph usernames to mount the images/pool with.  
+  
 These plugins are designed for Rancher 1.6.x
+
+## Bugs
+
+Not a bug of mine, but I suspect with 'rbd' when you stop the 'stack' Rancher is producing the events:
+`11/03/2019 14:11:49time="2019-03-11T04:11:49Z" level=info msg=unmount.request name="VOLUMENAME_HERE"
+11/03/2019 14:11:49time="2019-03-11T04:11:49Z" level=info msg=unmount.response name="VOLUMENAME_HERE"`
+
+But the rbd device never gets unmounted, even though the stack is stopped. Although the volume will get unmounted etc in a failover / follow-host-container event. Just seems this situation is not catered for.  
+
+I suspect the issue lies in `docker/volumeplugin/plugin.go` unmount code.
 
 Rancher Storage
 ==============
