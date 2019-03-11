@@ -14,7 +14,7 @@ format_on_create()
     local OUT
     local pool=$1
     local name=$2
-    local user=${3:-"admin"}
+    local user=${OPTS['user']:-"admin"}
     local timeout=${DEVICE_TIMEOUT}
 
     OUT=$(rbd map --user ${user} ${pool}/${name})
