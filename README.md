@@ -43,3 +43,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+
+## Installation
+Avoid all the building and import the git repo https://github.com/camAtGitHub/rancher-rbd-catalog (https://github.com/camAtGitHub/rancher-rbd-catalog.git) into a Rancher-Catalog - Then just click install the storage-driver.  
+Images hosted at: https://hub.docker.com/r/camboatdocker/rancher-storage-rbd
