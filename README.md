@@ -1,3 +1,8 @@
+My Fork - 2019
+==============
+This fork has updated 'rancher/storage-rbd' to include support for Ceph v12, it also includes support for ceph usernames to mount the images/pool with.  
+These plugins are designed for Rancher 1.6.x
+
 Rancher Storage
 ==============
 
@@ -6,6 +11,7 @@ This repo contains Rancher specific storage plugins
 ## Building
 
 `make`
+This will create docker images with tag 'dev' on your host
 
 
 ## Running
